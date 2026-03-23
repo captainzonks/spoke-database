@@ -1,0 +1,312 @@
+# ==============================================================================
+# SPOKE-DATABASE - DOCKER COMPOSE
+# ==============================================================================
+# Description: Time series, object storage, and document databases
+# Version: 1.0.0
+# Created: 2026-02-13
+# Modified: 2026-02-13
+# ==============================================================================
+# Module: database
+# Config Sources: .env (hub vars injected by Spoke + module defaults)
+# Security: non-root where possible, secrets via /run/secrets/
+# ==============================================================================
+# Container Images:
+#   INFLUXDB3_IMAGE (spoke/influxdb3:3.8.0-core-custom)
+#   MINIO_IMAGE (minio/minio:RELEASE.2025-09-07T16-13-09Z)
+#   COUCHDB_IMAGE (couchdb:3.5.1)
+#   VICTORIA_METRICS_IMAGE (victoriametrics/victoria-metrics:v1.134.0)
+# Networks:
+#   - troxy (192.168.35.0/24) - main application network
+# ==============================================================================
+
+name: spoke-database
+
+############################ EXTENSIONS
+
+x-ssl: &ssl
+  environment:
+    - SSL_CERT_FILE=${SSL_CERT_FILE}
+    - REQUESTS_CA_BUNDLE=${REQUESTS_CA_BUNDLE}
+    - CURL_CA_BUNDLE=${CURL_CA_BUNDLE}
+
+  volumes:
+    - ${CA_CERT}:/etc/ssl/certs/ca-certificates.crt:ro
+
+x-logging-small: &log_small
+  logging:
+    driver: json-file
+    options:
+      max-size: 10m
+      max-file: "2"
+
+############################ NETWORKS
+
+networks:
+  troxy:
+    external: true
+
+############################# SECRETS
+
+secrets:
+  influxdb3_auth_token:
+    file: ${SECRETS_DIR}/influxdb3/influxdb3_auth_token
+  minio_root_password:
+    file: ${SECRETS_DIR}/minio/minio_root_password
+  minio_loki_access_key:
+    file: ${SECRETS_DIR}/minio/minio_loki_access_key
+  minio_loki_secret_key:
+    file: ${SECRETS_DIR}/minio/minio_loki_secret_key
+  minio_prometheus_access_key:
+    file: ${SECRETS_DIR}/minio/minio_prometheus_access_key
+  minio_prometheus_secret_key:
+    file: ${SECRETS_DIR}/minio/minio_prometheus_secret_key
+  minio_play_access_key:
+    file: ${SECRETS_DIR}/minio/minio_play_access_key
+  minio_play_secret_key:
+    file: ${SECRETS_DIR}/minio/minio_play_secret_key
+
+############################# SERVICES
+
+services:
+  #======================================
+  # INFLUXDB3 - Time Series Database
+  #======================================
+  influxdb3:
+    <<: [*ssl, *log_small]
+    image: ${INFLUXDB3_IMAGE}
+    build:
+      context: ./dockerfiles/influxdb3/
+      dockerfile: Dockerfile
+      args:
+        BUILD_DATE: ${BUILD_DATE}
+        CT_TAG: ${INFLUXDB3_TAG}
+        USER_ID: ${PUID:-0}
+        GROUP_ID: ${DGID:-0}
+        USERNAME: influxdb3
+        GROUPNAME: influxdb3
+        OG_UID: 1500
+        OG_GID: 1500
+
+    hostname: influxdb3
+    container_name: influxdb3
+    restart: on-failure
+    init: true
+
+    security_opt:
+      - no-new-privileges=true
+    mem_limit: 2G
+    cpus: 2
+    cap_drop:
+      - ALL
+    user: ${PUID}:${DGID}
+
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+    networks:
+      troxy:
+        ipv4_address: ${INFLUXDB3_IP}
+
+    ports:
+      - ${INFLUXDB3_PORT}:8181
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8181/health"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+
+    environment:
+      - TZ=${TZ}
+      - DOMAIN=${DOMAIN}
+      - INFLUX3_IP=${INFLUXDB3_IP}
+      - INFLUX3_PORT=${INFLUXDB3_PORT}
+      - LOG_FILTER=info
+      - INFLUXDB3_OBJECT_STORE=file
+      - INFLUXDB3_NODE_IDENTIFIER_PREFIX=${INFLUXDB3_NODE_IDENTIFIER_PREFIX}
+      - INFLUXDB3_WRITER_IDENTIFIER_PREFIX=${INFLUXDB3_WRITER_IDENTIFIER_PREFIX}
+      - INFLUXDB3_DB_DIR=/var/lib/influxdb3/
+      - INFLUXDB3_PLUGIN_DIR=/plugins/
+      - VIRTUAL_ENV_LOCATION=/home/influxdb3/.venv/
+
+    volumes:
+      - ${INFLUXDB3_DATA_DIR}/home/influxdb3/:/home/influxdb3/:rw
+      - ${INFLUXDB3_DATA_DIR}/db/:/var/lib/influxdb3/:rw
+      - ${INFLUXDB3_DATA_DIR}/home/influxdb3/.venv/:/home/influxdb3/.venv/:rw
+      - ${INFLUXDB3_DATA_DIR}/plugins/:/plugins/:rw
+      - /dev/shm/:/dev/shm/:rw
+      - ${LOCALTIME}:/etc/localtime:ro
+
+    tmpfs:
+      - /tmp/:rw,size=500m
+      - /run/:rw,size=100m
+      - /dev/shm/:rw,size=1g
+
+    secrets:
+      - influxdb3_auth_token
+
+  #======================================
+  # MINIO - Object Storage
+  #======================================
+  minio:
+    <<: [*ssl, *log_small]
+    image: ${MINIO_IMAGE}
+    hostname: minio
+    container_name: minio
+    restart: on-failure
+    init: true
+
+    security_opt:
+      - no-new-privileges=true
+    read_only: true
+    mem_limit: 1G
+    cpus: 1.0
+    cap_drop:
+      - ALL
+    user: ${PUID}:${DGID}
+
+    networks:
+      troxy:
+        ipv4_address: ${MINIO_IP}
+
+    ports:
+      - ${MINIO_API_PORT}:9000
+      - ${MINIO_CONSOLE_PORT}:9090
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 15s
+      timeout: 20s
+      retries: 5
+
+    command:
+      - minio
+      - server
+      - --console-address
+      - ":9090"
+      - /data
+
+    environment:
+      - TZ=${TZ}
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD_FILE=/run/secrets/minio_root_password
+      - MINIO_LOKI_ACCESS_KEY_FILE=/run/secrets/minio_loki_access_key
+      - MINIO_LOKI_SECRET_KEY_FILE=/run/secrets/minio_loki_secret_key
+      - MINIO_PROMETHEUS_ACCESS_KEY_FILE=/run/secrets/minio_prometheus_access_key
+      - MINIO_PROMETHEUS_SECRET_KEY_FILE=/run/secrets/minio_prometheus_secret_key
+      - MINIO_PLAY_ACCESS_KEY_FILE=/run/secrets/minio_play_access_key
+      - MINIO_PLAY_SECRET_KEY_FILE=/run/secrets/minio_play_secret_key
+      - MINIO_PROMETHEUS_AUTH_TYPE=public
+      - MINIO_UPDATE=off
+
+    volumes:
+      - ${MINIO_DATA_DIR}/.mc/:/tmp/.mc/:rw
+      - ${MINIO_DATA_DIR}/data/:/data/:rw
+      - ${LOCALTIME}:/etc/localtime:ro
+
+    tmpfs:
+      - /tmp/:rw,size=512m
+      - /run/:rw,size=100m
+      - /dev/shm/:rw,size=512m
+
+    secrets:
+      - minio_root_password
+      - minio_loki_access_key
+      - minio_loki_secret_key
+      - minio_prometheus_access_key
+      - minio_prometheus_secret_key
+      - minio_play_access_key
+      - minio_play_secret_key
+
+  #======================================
+  # COUCHDB - Document Database
+  #======================================
+  couchdb:
+    <<: [*ssl, *log_small]
+    image: ${COUCHDB_IMAGE}
+    hostname: couchdb
+    container_name: couchdb
+    restart: on-failure
+    init: true
+
+    security_opt:
+      - no-new-privileges=true
+    mem_limit: 256M
+    cpus: 0.75
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
+      - FOWNER
+
+    networks:
+      troxy:
+        ipv4_address: ${COUCHDB_IP}
+
+    ports:
+      - ${COUCHDB_PORT}:5984
+
+    environment:
+      - TZ=${TZ}
+      - DOMAIN=${DOMAIN}
+      - ERL_FLAGS=${ERL_FLAGS}
+
+    volumes:
+      - ${COUCHDB_DATA_DIR}/local.d/:/opt/couchdb/etc/local.d/:rw
+      - ${COUCHDB_DATA_DIR}/data/:/opt/couchdb/data/:rw
+      - ${LOCALTIME}:/etc/localtime:ro
+
+    tmpfs:
+      - /tmp/:rw,size=200m
+      - /run/:rw,size=100m
+      - /dev/shm/:rw,size=256m
+
+  #======================================
+  # VICTORIA METRICS - Time-series Database
+  #======================================
+  victoria-metrics:
+    <<: [*ssl, *log_small]
+    image: ${VICTORIA_METRICS_IMAGE}
+    hostname: victoria-metrics
+    container_name: victoria-metrics
+    restart: on-failure
+    init: true
+
+    security_opt:
+      - no-new-privileges=true
+    read_only: true
+    mem_limit: 4G
+    cpus: 1.0
+    cap_drop:
+      - ALL
+    user: ${PUID}:${DGID}
+
+    networks:
+      troxy:
+        ipv4_address: ${VICTORIA_METRICS_IP}
+
+    ports:
+      - ${VICTORIA_METRICS_PORT}:8428
+
+    command:
+      - --selfScrapeInterval=5s
+      - --storageDataPath=/data
+      - --httpListenAddr=:8428
+
+    environment:
+      - TZ=${TZ}
+      - DOMAIN=${DOMAIN}
+
+    volumes:
+      - ${VICTORIA_METRICS_DATA_DIR}/data/:/data/:rw
+      - ${LOCALTIME}:/etc/localtime:ro
+
+    tmpfs:
+      - /tmp/:rw,size=200m
+      - /run/:rw,size=100m
+      - /dev/shm/:rw,size=512m

@@ -1,0 +1,32 @@
+http:
+  middlewares:
+    chain-influxdb3-api:
+      chain:
+        middlewares:
+          - rate-limit
+          - secure-headers
+          - real-ip
+
+    chain-couchdb:
+      chain:
+        middlewares:
+          - rate-limit
+          - obsidian-cors
+          - real-ip
+
+    obsidian-cors:
+      headers:
+        accessControlAllowMethods: "GET, PUT, POST, HEAD, DELETE, OPTIONS"
+        accessControlAllowHeaders: "accept,authorization,content-type,origin,referer,x-requested-with"
+        accessControlAllowOriginList:
+          - "app://obsidian.md"
+          - "capacitor://localhost"
+          - "capacitor://obsidian.md"
+          - "http://localhost"
+          - "https://localhost"
+          - "obsidian://"
+          - "file://"
+          - "null"
+        accessControlAllowCredentials: true
+        accessControlMaxAge: 3600
+        addVaryHeader: true

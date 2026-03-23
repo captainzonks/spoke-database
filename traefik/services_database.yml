@@ -1,0 +1,21 @@
+http:
+  services:
+    couchdb-svc:
+      loadBalancer:
+        servers:
+          - url: http://couchdb:5984
+
+    minio-console-svc:
+      loadBalancer:
+        servers:
+          - url: http://minio:9090
+
+    minio-svc:
+      loadBalancer:
+        servers:
+          - url: http://minio:9000
+
+    influxdb3-svc:
+      loadBalancer:
+        servers:
+          - url: http://influxdb3:8181

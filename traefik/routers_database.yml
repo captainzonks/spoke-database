@@ -1,0 +1,20 @@
+http:
+  routers:
+    couchdb:
+      rule: Host(`couchdb.{{ env "DOMAIN" }}`)
+      entryPoints: "websecure"
+      middlewares: chain-couchdb@file
+      service: couchdb-svc@file
+      priority: 100
+
+    minio:
+      rule: Host(`minio.{{ env "DOMAIN" }}`)
+      entryPoints: "websecure"
+      middlewares: chain-no-auth@file
+      service: minio-console-svc@file
+
+    influxdb3-api:
+      rule: Host(`db3.{{ env "DOMAIN" }}`)
+      entryPoints: "websecure"
+      middlewares: chain-influxdb3-api@file
+      service: influxdb3-svc@file

@@ -1,0 +1,81 @@
+module:
+  name: database
+  version: 1.0.0
+  description: "Time series, object storage, and document databases"
+  author: "Matt Barham"
+  license: MIT
+
+requires:
+  networks:
+    - name: troxy
+      required: true
+  hub_services:
+    - traefik
+
+env:
+  hub:
+    - TZ
+    - DOMAIN
+    - SPOKE_DIR
+    - SECRETS_DIR
+    - APPDATA_DIR
+    - DATA_DIR
+    - PUID
+    - DGID
+    - SSL_CERT_FILE
+    - REQUESTS_CA_BUNDLE
+    - CURL_CA_BUNDLE
+    - CA_CERT
+    - LOCALTIME
+    - BUILD_DATE
+    - USERNAME
+  module:
+    - INFLUXDB3_IMAGE
+    - INFLUXDB3_TAG
+    - MINIO_IMAGE
+    - COUCHDB_IMAGE
+    - VICTORIA_METRICS_IMAGE
+    - INFLUXDB3_IP
+    - INFLUXDB3_PORT
+    - MINIO_IP
+    - MINIO_API_PORT
+    - MINIO_CONSOLE_PORT
+    - COUCHDB_IP
+    - COUCHDB_PORT
+    - VICTORIA_METRICS_IP
+    - VICTORIA_METRICS_PORT
+    - ERL_FLAGS
+    - INFLUXDB3_NODE_IDENTIFIER_PREFIX
+    - INFLUXDB3_WRITER_IDENTIFIER_PREFIX
+
+secrets:
+  - name: influxdb3_auth_token
+    required: true
+  - name: minio_root_password
+    required: true
+  - name: minio_loki_access_key
+    required: false
+  - name: minio_loki_secret_key
+    required: false
+  - name: minio_prometheus_access_key
+    required: false
+  - name: minio_prometheus_secret_key
+    required: false
+  - name: minio_play_access_key
+    required: false
+  - name: minio_play_secret_key
+    required: false
+
+health:
+  - service: influxdb3
+    path: /health
+    port: 8181
+  - service: minio
+    path: /minio/health/live
+    port: 9000
+  - service: couchdb
+    path: /
+    port: 5984
+  - service: victoria-metrics
+    path: /health
+    port: 8428
