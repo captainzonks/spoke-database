@@ -1,5 +1,7 @@
 # spoke-database
 
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/E1E21U3S1R)
+
 Spoke module for time series, object storage, and document databases.
 
 ## Services
