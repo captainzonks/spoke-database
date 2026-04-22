@@ -1,12 +1,18 @@
 # ==============================================================================
-# DOCKERFILE - InfluxDB3 with Custom User Mapping and Secrets Support
+# DATABASE MODULE - INFLUXDB3 DOCKERFILE
 # ==============================================================================
-# Description: InfluxDB3 Core with custom user and Docker secrets handling
+# Description: InfluxDB3 Core with custom user mapping and Docker secrets
+# Author: Matt Barham
+# Created: 2026-02-13
+# Modified: 2026-04-21
 # Version: 3.8.0-custom
+# Host: Your Server
 # ==============================================================================
+# Type: Dockerfile
 # Base Image: influxdb:3.8.0-core
 # Target Architecture: amd64
 # Security: custom user mapping, Docker secrets support
+# Component: module: database / service: influxdb3
 # ==============================================================================
 
 FROM influxdb:3.8.0-core

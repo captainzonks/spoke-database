@@ -1,22 +1,32 @@
 # ==============================================================================
-# SPOKE-DATABASE - DOCKER COMPOSE
+# DATABASE MODULE - DOCKER COMPOSE
 # ==============================================================================
 # Description: Time series, object storage, and document databases
-# Version: 1.0.0
+# Author: Matt Barham
 # Created: 2026-02-13
-# Modified: 2026-02-13
+# Modified: 2026-04-21
+# Version: 1.0.1
+# Host: Your Server
 # ==============================================================================
-# Module: database
-# Config Sources: .env (hub vars injected by Spoke + module defaults)
+# Component: module: database
+# Config Sources: base.env + .env.example + modules.yml overrides → .env (generated)
 # Security: non-root where possible, secrets via /run/secrets/
 # ==============================================================================
 # Container Images:
-#   INFLUXDB3_IMAGE (spoke/influxdb3:3.8.0-core-custom)
-#   MINIO_IMAGE (minio/minio:RELEASE.2025-09-07T16-13-09Z)
-#   COUCHDB_IMAGE (couchdb:3.5.1)
-#   VICTORIA_METRICS_IMAGE (victoriametrics/victoria-metrics:v1.134.0)
+#   See modules/database/.env.example for complete image paths and versions
+#   (INFLUXDB3_IMAGE, MINIO_IMAGE, COUCHDB_IMAGE, VICTORIA_METRICS_IMAGE)
+# Documentation:
+#   - InfluxDB3: https://docs.influxdata.com/influxdb/v3/
+#   - MinIO: https://min.io/docs/
+#   - CouchDB: https://docs.couchdb.org/
+#   - VictoriaMetrics: https://docs.victoriametrics.com/
 # Networks:
 #   - troxy (192.168.35.0/24) - main application network
+# Dependencies:
+#   - Hub: traefik
+# External Integrations:
+#   - [x] Traefik routing
+#   - [ ] Authentik forward auth
 # ==============================================================================
 
 name: spoke-database
