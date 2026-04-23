@@ -1,17 +1,24 @@
 #!/bin/sh
 set -e
 
-# ============================================================================
-# INFLUXDB3 ENTRYPOINT - DOCKER SECRETS HANDLER
-# ============================================================================
+# ==============================================================================
+# DATABASE MODULE - INFLUXDB3 ENTRYPOINT
+# ==============================================================================
 # Description: Reads Docker secrets and configures auth for influxdb3 v3.8.0+
-# Version: 2.0.0
-# ============================================================================
+# Author: Matt Barham
+# Created: 2026-02-13
+# Modified: 2026-04-21
+# Version: 2.0.1
+# Host: Your Server
+# ==============================================================================
+# Type: Shell Script (entrypoint)
+# Component: module: database / service: influxdb3
+# ==============================================================================
 # influxdb3 v3.8.0 changed auth model:
 #   - Old: INFLUXDB3_AUTH_TOKEN env var (no longer supported)
 #   - New: --admin-token-file flag / INFLUXDB3_ADMIN_TOKEN_FILE env var
 #          --disable-authz health,ping for unauthenticated health checks
-# ============================================================================
+# ==============================================================================
 
 EXTRA_ARGS=""
 
