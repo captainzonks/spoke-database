@@ -7,7 +7,7 @@ README.md - spoke-database module documentation
 Description: Time series, object storage, and document databases Spoke module
 Author: Matt Barham
 Created: 2026-02-13
-Modified: 2026-04-21
+Modified: 2026-04-23
 Version: 1.0.1
 ==============================================================================
 Document Type: Reference
@@ -55,11 +55,11 @@ Build with: `docker compose build influxdb3`
 
 | Variable                | Default                                           | Description                |
 |-------------------------|---------------------------------------------------|----------------------------|
-| `INFLUXDB3_TAG`         | `3.8.0-core-custom`                              | InfluxDB3 build tag        |
+| `INFLUXDB3_TAG`         | `3.9.1-core-custom`                              | InfluxDB3 build tag        |
 | `INFLUXDB3_IMAGE`       | `spoke/influxdb3:${INFLUXDB3_TAG}`               | InfluxDB3 image            |
 | `MINIO_IMAGE`           | `minio/minio:RELEASE.2025-09-07T16-13-09Z`       | MinIO image                |
 | `COUCHDB_IMAGE`         | `couchdb:3.5.1`                                  | CouchDB image              |
-| `VICTORIA_METRICS_IMAGE`| `victoriametrics/victoria-metrics:v1.134.0`       | VictoriaMetrics image      |
+| `VICTORIA_METRICS_IMAGE`| `victoriametrics/victoria-metrics:v1.140.0`       | VictoriaMetrics image      |
 | `INFLUXDB3_IP`          | `192.168.35.45`                                  | InfluxDB3 static IP        |
 | `MINIO_IP`              | `192.168.35.46`                                  | MinIO static IP            |
 | `COUCHDB_IP`            | `192.168.35.44`                                  | CouchDB static IP          |
