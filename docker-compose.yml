@@ -4,8 +4,8 @@
 # Description: Time series, object storage, and document databases
 # Author: Matt Barham
 # Created: 2026-02-13
-# Modified: 2026-04-21
-# Version: 1.0.1
+# Modified: 2026-10-02
+# Version: 1.0.2
 # Host: Your Server
 # ==============================================================================
 # Component: module: database
@@ -135,9 +135,11 @@ services:
       - INFLUX3_PORT=${INFLUXDB3_PORT}
       - LOG_FILTER=info
       - INFLUXDB3_OBJECT_STORE=file
-      - INFLUXDB3_NODE_IDENTIFIER_PREFIX=${INFLUXDB3_NODE_IDENTIFIER_PREFIX}
+      - INFLUXDB3_NODE_ID=${INFLUXDB3_NODE_IDENTIFIER_PREFIX}
       - INFLUXDB3_WRITER_IDENTIFIER_PREFIX=${INFLUXDB3_WRITER_IDENTIFIER_PREFIX}
-      - INFLUXDB3_DB_DIR=/var/lib/influxdb3/
+      # influxdb >= 3.11: INFLUXDB3_DATA_DIR replaces INFLUXDB3_DB_DIR, and the
+      # upstream image sets its own default, so it must be set explicitly here.
+      - INFLUXDB3_DATA_DIR=/var/lib/influxdb3/
       - INFLUXDB3_PLUGIN_DIR=/plugins/
       - VIRTUAL_ENV_LOCATION=/home/influxdb3/.venv/
 
