@@ -5,17 +5,17 @@
 # Author: Matt Barham
 # Created: 2026-02-13
 # Modified: 2026-10-02
-# Version: 3.11.4-custom
+# Version: 3.11.7-custom
 # Host: Your Server
 # ==============================================================================
 # Type: Dockerfile
-# Base Image: influxdb:3.11.4-core
+# Base Image: influxdb:3.11.7-core
 # Target Architecture: amd64
 # Security: custom user mapping, Docker secrets support
 # Component: module: database / service: influxdb3
 # ==============================================================================
 
-FROM influxdb:3.11.4-core
+FROM influxdb:3.11.7-core
 
 ARG USER_ID
 ARG GROUP_ID
