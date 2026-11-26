@@ -4,18 +4,18 @@
 # Description: InfluxDB3 Core with custom user mapping and Docker secrets
 # Author: Matt Barham
 # Created: 2026-02-13
-# Modified: 2026-10-02
-# Version: 3.12.2-custom
+# Modified: 2026-11-25
+# Version: 3.12.3-custom
 # Host: Your Server
 # ==============================================================================
 # Type: Dockerfile
-# Base Image: influxdb:3.12.2-core
+# Base Image: influxdb:3.12.3-core
 # Target Architecture: amd64
 # Security: custom user mapping, Docker secrets support
 # Component: module: database / service: influxdb3
 # ==============================================================================
 
-FROM influxdb:3.12.2-core
+FROM influxdb:3.12.3-core
 
 ARG USER_ID
 ARG GROUP_ID
