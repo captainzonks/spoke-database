@@ -4,8 +4,8 @@
 # Description: Traefik dynamic router definitions for the database module
 # Author: Matt Barham
 # Created: 2026-02-13
-# Modified: 2026-04-21
-# Version: 1.0.1
+# Modified: 2026-11-26
+# Version: 2.0.0
 # Host: Your Server
 # ==============================================================================
 # Type: Traefik Dynamic Config (routers)
@@ -26,9 +26,3 @@ http:
       entryPoints: "websecure"
       middlewares: chain-no-auth@file
       service: minio-console-svc@file
-
-    influxdb3-api:
-      rule: Host(`db3.{{ env "DOMAIN" }}`)
-      entryPoints: "websecure"
-      middlewares: chain-influxdb3-api@file
-      service: influxdb3-svc@file

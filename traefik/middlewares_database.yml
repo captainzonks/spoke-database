@@ -4,8 +4,8 @@
 # Description: Traefik dynamic middleware definitions for the database module
 # Author: Matt Barham
 # Created: 2026-02-13
-# Modified: 2026-04-21
-# Version: 1.0.1
+# Modified: 2026-11-26
+# Version: 2.0.0
 # Host: Your Server
 # ==============================================================================
 # Type: Traefik Dynamic Config (middlewares)
@@ -14,13 +14,6 @@
 
 http:
   middlewares:
-    chain-influxdb3-api:
-      chain:
-        middlewares:
-          - rate-limit
-          - secure-headers
-          - real-ip
-
     chain-couchdb:
       chain:
         middlewares:
