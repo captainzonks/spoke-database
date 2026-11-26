@@ -4,8 +4,8 @@
 # Description: Traefik dynamic service definitions for the database module
 # Author: Matt Barham
 # Created: 2026-02-13
-# Modified: 2026-04-21
-# Version: 1.0.1
+# Modified: 2026-11-26
+# Version: 2.0.0
 # Host: Your Server
 # ==============================================================================
 # Type: Traefik Dynamic Config (services)
@@ -28,8 +28,3 @@ http:
       loadBalancer:
         servers:
           - url: http://minio:9000
-
-    influxdb3-svc:
-      loadBalancer:
-        servers:
-          - url: http://influxdb3:8181

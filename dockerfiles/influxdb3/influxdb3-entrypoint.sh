@@ -1,41 +1,42 @@
 #!/bin/sh
-set -e
 
 # ==============================================================================
 # DATABASE MODULE - INFLUXDB3 ENTRYPOINT
 # ==============================================================================
-# Description: Reads Docker secrets and configures auth for influxdb3 v3.8.0+
+# Description: Starts influxdb3 with token authentication from a Docker secret
 # Author: Matt Barham
 # Created: 2026-02-13
-# Modified: 2026-04-21
-# Version: 2.0.1
+# Modified: 2026-11-26
+# Version: 3.0.0
 # Host: Your Server
 # ==============================================================================
 # Type: Shell Script (entrypoint)
 # Component: module: database / service: influxdb3
 # ==============================================================================
-# influxdb3 v3.8.0 changed auth model:
-#   - Old: INFLUXDB3_AUTH_TOKEN env var (no longer supported)
-#   - New: --admin-token-file flag / INFLUXDB3_ADMIN_TOKEN_FILE env var
-#          --disable-authz health,ping for unauthenticated health checks
+# The influxdb3_auth_token secret holds one admin token (apiv3_...). It is
+# written to the JSON format --admin-token-file expects, in a 0600 temp file.
+# InfluxDB loads it only while the catalog has no admin token. The server
+# refuses to start without the secret; it never runs unauthenticated.
+# /health and /ping stay open for health checks.
+# https://docs.influxdata.com/influxdb3/core/admin/tokens/admin/
 # ==============================================================================
 
-EXTRA_ARGS=""
+set -eu
 
-# Configure auth from Docker secret
-# influxdb3 v3.8.0+ expects --admin-token-file with JSON format
-# TODO: Generate proper JSON token file format for v3.8.0+ auth
-# For now, run without auth until token migration is done
-if [ -f "/run/secrets/influxdb3_auth_token" ]; then
-  echo "INFO: found secret 'influxdb3_auth_token'"
-  echo "WARNING: influxdb3 v3.8.0+ requires JSON token format"
-  echo "WARNING: running with --without-auth until token is migrated"
-  EXTRA_ARGS="--without-auth"
-else
-  echo "WARNING: secret 'influxdb3_auth_token' not found at /run/secrets/"
-  echo "Running without auth"
-  EXTRA_ARGS="--without-auth"
+SECRET_FILE=/run/secrets/influxdb3_auth_token
+if [ ! -r "${SECRET_FILE}" ]; then
+  echo "ERROR: ${SECRET_FILE} is missing or unreadable; refusing to start without authentication" >&2
+  exit 1
 fi
-
-# Execute the InfluxDB3 binary with arguments from CMD + extra args
-exec influxdb3 "$@" ${EXTRA_ARGS}
+TOKEN=$(tr -d '\r\n' < "${SECRET_FILE}")
+case "${TOKEN}" in
+  apiv3_*) ;;
+  *) echo "ERROR: the admin token must start with apiv3_" >&2; exit 1 ;;
+esac
+case "${TOKEN#apiv3_}" in
+  ''|*[!A-Za-z0-9_-]*) echo "ERROR: the admin token contains unexpected characters" >&2; exit 1 ;;
+esac
+TOKEN_FILE=$(mktemp /tmp/influxdb3_admin_token.XXXXXX)
+printf '{"token":"%s","name":"_admin"}\n' "${TOKEN}" > "${TOKEN_FILE}"
+unset TOKEN
+exec influxdb3 "$@" --admin-token-file "${TOKEN_FILE}" --disable-authz health,ping

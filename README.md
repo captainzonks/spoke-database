@@ -7,8 +7,8 @@ README.md - spoke-database module documentation
 Description: Time series, object storage, and document databases Spoke module
 Author: Matt Barham
 Created: 2026-02-13
-Modified: 2026-04-23
-Version: 1.0.1
+Modified: 2026-11-26
+Version: 1.1.0
 ==============================================================================
 Document Type: Reference
 Audience: Developer
@@ -34,6 +34,8 @@ Spoke module for time series, object storage, and document databases.
 - Spoke hub deployed with `troxy` network
 - Traefik available as a hub service
 - Required secrets: `influxdb3_auth_token`, `minio_root_password`
+- InfluxDB3 requires token authentication. `influxdb3_auth_token` holds an admin token starting with `apiv3_`
+  (generate one with `influxdb3 create token --admin --offline`). The module publishes no Traefik route for InfluxDB3.
 
 ## Quick Start
 
